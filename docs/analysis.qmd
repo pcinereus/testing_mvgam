@@ -1,0 +1,299 @@
+---
+title: Testing of the mvgam package
+author: "Murray Logan"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+format: 
+  html:
+    css: style.css
+    toc: true
+    toc-float: true
+    number-sections: true
+    number-depth: 3
+    embed-resources: true
+    code-fold: false
+    code-tools: true
+    code-summary: "Show the code"
+crossref:
+  fig-title: '**Figure**'
+  fig-labels: arabic
+  tbl-title: '**Table**'
+  tbl-labels: arabic
+engine: knitr
+output_dir: "docs"
+---
+
+```{r chunks, results='markdown', eval=TRUE, echo = FALSE}
+assignInNamespace('.sep.label',  "^\\ *(#|--)+\\s*(@knitr|----+)(.*?)-*\\s*$", ns='knitr')
+
+knitr::opts_chunk$set(tidy = "styler")
+
+knitr::read_chunk("../R/analysis.R") 
+```
+
+
+# Preparations
+
+- Load required packages
+```{r}
+#| label: load_libraries
+#| eval: true
+#| message: false
+#| warnings: false
+#| output: false
+#| cache: false
+```
+
+- Load other functions
+```{r}
+#| label: load_functions
+#| eval: true
+#| message: false
+#| warnings: false
+#| output: false
+#| cache: false
+```
+
+# Create fabricated data
+
+Lets create some simple motivating data. These data will represent a
+simplified version of the kinds of data that are very common in
+ecological monitoring programs.  In this case, the design comprises:
+
+- **six** large scale locations (for example, a selection of
+  individual coral **reefs** within a portion of the Great Barrier
+  Reef).
+- within each reef, there are **three fixed sites** (distinct,
+  permanently allocated representative areas within each reef)
+- each site is surveyed annually for 10 years (**time**) 
+- the amount (percentage cover) of three **species** (for example
+  coral taxa) are monitored from each site, each year
+- to keep  things simple for this example, we will assume that coral
+  cover is generated from a Gaussian distribution
+- this design is represented in @fig-visualise_design_1 and
+  @fig-visualise_design_2 below
+
+Notes:
+
+- typically, monitoring designs comprise additional spatial scales.
+  For example, there are often multiple transects within each site.
+- individual coral cover observations are usually derived from
+  identifying individual corals under a grid of points on photographs
+  taken along the transects. As such, coral cover usually modelled
+  against a binomial distribution (points of the focal taxa, total
+  photo points)
+- there are usually many more than three species identified
+- long-term monitoring on the Great  Barrier Reef extends back to 1985
+  (hence approaching 40 years of continual monitoring)
+
+::: {.callout-note}
+The data generated in this section are saved (as a tibble) in binary
+format towards the end of the section and read back in the proceeding
+section. As a result, the current section on creating the fabricated
+data can be skipped.
+:::
+
+
+
+::: {.panel-tabset}
+
+## Define parameters
+
+```{r}
+#| label: define parameters
+#| results: markup
+#| eval: true
+#| echo: true
+#| cache: false
+```
+## Define reefs
+
+```{r}
+#| label: define reefs
+#| results: markup
+#| eval: true
+#| echo: true
+#| cache: false
+```
+
+## Define sites
+
+```{r}
+#| label: define sites
+#| results: markup
+#| eval: true
+#| echo: true
+#| cache: false
+```
+
+## Define species
+
+```{r}
+#| label: define species
+#| results: markup
+#| eval: true
+#| echo: true
+#| cache: false
+```
+
+## Define times
+
+```{r}
+#| label: define times
+#| results: markup
+#| eval: true
+#| echo: true
+#| cache: false
+```
+## Define splines
+
+```{r}
+#| label: define splines
+#| results: markup
+#| eval: true
+#| echo: true
+#| cache: false
+```
+## Define Gaussian response
+
+```{r}
+#| label: define Gaussian response
+#| results: markup
+#| eval: true
+#| echo: true
+#| cache: false
+```
+:::
+
+# Load the data
+
+```{r}
+#| label: load_data
+#| results: markup
+#| eval: true
+#| echo: true
+#| cache: false
+```
+
+
+
+# Visualise design
+
+```{r}
+#| label: fig-visualise_design_1
+#| results: markup
+#| eval: true
+#| echo: true
+#| cache: false
+#| fig-width: 20
+#| fig-height: 8
+#| fig-cap: design of fabricated data illustrating the spatio-temporal hierarchy.  Note, species have been omitted to save space.
+```
+
+```{r}
+#| label: fig-visualise_design_2
+#| results: markup
+#| eval: true
+#| echo: true
+#| cache: false
+#| fig-width: 20
+#| fig-height: 8
+#| fig-cap: design of fabricated data illustrating further details of the spatio-temporal hierarchy. Note, the full species and temporal design is only shown for a single site so as to save space.
+```
+
+# Exploratory data analysis
+
+```{r}
+#| label: fig-eda_1
+#| results: markup
+#| eval: true
+#| echo: true
+#| cache: false
+#| fig-width: 12
+#| fig-height: 10
+#| fig-cap: Temporal trends in three coral species across multiple sites and reefs
+```
+
+```{r}
+#| label: fig-eda_2
+#| results: markup
+#| eval: true
+#| echo: true
+#| cache: false
+#| fig-width: 12
+#| fig-height: 10
+#| fig-cap: Simplified temporal trends in three coral species across multiple sites and reefs
+```
+
+# Data preparations
+
+In order to access the convenience of the `mvgam` package, it is
+necessary to prepare the data a little:
+
+- the multivariate components need to be in a factor called `series`
+- the "sites" need to be uniquely identified within each "reef" (in
+  this case they already were)
+- the temporal component needs to be a numeric variable representing
+  the time increments
+
+```{r}
+#| label: data preparation
+#| results: markup
+#| eval: true
+#| echo: true
+#| cache: false
+```
+
+# Data analysis
+
+We seem to have hit a snag on the first hurdle - exploring the default
+priors (although this is likely going to also be an issue downstream).
+
+The issue is that with this hierarchical design, there are multiple
+instances of each time point (one for each Reef/Site/Species).
+Internally, this is triggering an error designed to highlight missing
+observations or timepoints.
+
+This issue is highlighted via a number of explorations:
+
+1. attempting to gain priors for a null model from the full design -
+   fails
+2. attempting to gain priors for a null model from a design aggregated
+   to a single value per timepoint - succeeds
+3. attempting to gain priors for a null model from a design aggregated
+   to the Reef/Timepoint level (hence one timepoint per six reefs) - fails
+4. it also fails when we attempt to gain priors for structures that
+   include Reef as a random effect in either the observation or
+   process model formulae (on data aggregated to the Reef/Timepoint
+   level)
+
+::: {.panel-tabset}
+
+## Exploration 1
+
+```{r}
+#| label: analysis exploration 1
+#| results: markup
+#| eval: true
+#| error: true
+#| echo: true
+#| cache: false
+```
+## Exploration 2
+```{r}
+#| label: analysis exploration 2
+#| results: markup
+#| eval: true
+#| error: true
+#| echo: true
+#| cache: false
+```
+## Exploration 3
+```{r}
+#| label: analysis exploration 3
+#| results: markup
+#| eval: true
+#| error: true
+#| echo: true
+#| cache: false
+```
+:::
